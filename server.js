@@ -1,7 +1,7 @@
 require("dotenv").config();
 const http = require("http");
 const { MongoClient } = require("mongodb");
-import Razorpay from "razorpay";
+const Razorpay = require("razorpay");
 
 const razorpay = new Razorpay({
   key_id: "rzp_test_RfaAH0asHcuVZE",
@@ -38,7 +38,7 @@ async function startServer() {
 
       console.log(`📨 ${req.method} ${req.url}`);
 
-     // ===== CREATE RAZORPAY ORDER =====
+    // ===== CREATE RAZORPAY ORDER =====
 if (req.method === "POST" && req.url === "/create-razorpay-order") {
   let body = "";
 
@@ -56,26 +56,26 @@ if (req.method === "POST" && req.url === "/create-razorpay-order") {
       }
 
       const options = {
-        amount: data.amount,   // Already *100 from frontend
+        amount: data.amount,     // price * 100 frontend se
         currency: "INR",
         receipt: "rcpt_" + Date.now()
       };
 
+      console.log("Creating Razorpay order with:", options);
+
       const order = await razorpay.orders.create(options);
 
       res.writeHead(200, { "Content-Type": "application/json" });
-      return res.end(
-        JSON.stringify({
-          success: true,
-          orderId: order.id,
-          amount: order.amount
-        })
-      );
+      return res.end(JSON.stringify({
+        success: true,
+        orderId: order.id,
+        amount: order.amount
+      }));
 
     } catch (err) {
-      console.error("Razorpay order error:", err);
+      console.error("❌ Razorpay order error:", err);
       res.writeHead(500, { "Content-Type": "application/json" });
-      return res.end(JSON.stringify({ success: false, error: "Server error" }));
+      return res.end(JSON.stringify({ success: false, error: "Razorpay failed" }));
     }
   });
   return;
