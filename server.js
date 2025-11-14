@@ -21,6 +21,7 @@ async function startServer() {
     const menuCollection = db.collection("menu");
     const ordersCollection = db.collection("orders");
     const bookingsCollection = db.collection("bookings");
+    const reviewsCollection = db.collection("reviews");
 
     const server = http.createServer(async (req, res) => {
       // CORS headers
@@ -163,11 +164,11 @@ if (req.method === "POST" && req.url === "/place-order-after-payment") {
               time,
               tableNumber,
               persons,
-              userId, // <-- Add userId
-              username, // <-- Add username
+              userId, 
+              username, 
             } = bookingData;
 
-            // ✅ Validate required fields
+           
             if (
               !itemId ||
               !itemName ||
@@ -427,6 +428,27 @@ if (req.method === "POST" && req.url === "/place-order-after-payment") {
           return;
         }
       }
+
+      // ===== GET REVIEWS =====
+if (req.method === "GET" && req.url === "/reviews") {
+    try {
+        const reviews = await reviewsCollection
+            .find()
+            .sort({ _id: -1 })   // latest first
+            .toArray();
+
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(reviews));
+
+    } catch (err) {
+        console.error("Get reviews error:", err);
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Server error loading reviews" }));
+    }
+
+    return;
+}
+
 
       // --- DYNAMIC ROUTES (startsWith) ---
 
