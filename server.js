@@ -64,6 +64,8 @@ if (req.method === "POST" && req.url === "/create-razorpay-order") {
       console.log("Creating Razorpay order with:", options);
 
       const order = await razorpay.orders.create(options);
+      console.log("Backend Razorpay order:", order);
+
 
       res.writeHead(200, { "Content-Type": "application/json" });
       return res.end(JSON.stringify({
