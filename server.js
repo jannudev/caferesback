@@ -1,6 +1,13 @@
 require("dotenv").config();
 const http = require("http");
 const { MongoClient } = require("mongodb");
+import Razorpay from "razorpay";
+
+const razorpay = new Razorpay({
+  key_id: "rzp_test_RfaAH0asHcuVZE",
+  key_secret: "kipPapaSAY1JHzlGA4PWjhPV"  
+});
+
 
 const client = new MongoClient(process.env.MONGO_URL);
 const PORT = process.env.PORT 
@@ -31,64 +38,110 @@ async function startServer() {
 
       console.log(`📨 ${req.method} ${req.url}`);
 
-      // ===== PLACE ORDER =====
-      if (req.method === "POST" && req.url === "/order") {
-        let body = "";
+     // ===== CREATE RAZORPAY ORDER =====
+if (req.method === "POST" && req.url === "/create-razorpay-order") {
+  let body = "";
 
-        req.on("data", (chunk) => {
-          body += chunk;
-        });
+  req.on("data", chunk => {
+    body += chunk;
+  });
 
-        req.on("end", async () => {
-          try {
-            const orderData = JSON.parse(body);
+  req.on("end", async () => {
+    try {
+      const data = JSON.parse(body);
 
-            // ✅ Validate that item exists
-            if (!orderData.item) {
-              res.writeHead(400, { "Content-Type": "application/json" });
-              res.end(JSON.stringify({ error: "Missing item data" }));
-              return;
-            }
-
-            // ✅ Determine order type and customer info
-            const orderType = orderData.tableNumber ? "intable" : "online";
-            const customerIdentifier =
-              orderType === "intable"
-                ? `Table ${orderData.tableNumber}`
-                : orderData.username || "Guest";
-
-            const order = {
-              userId: orderData.userId || null,
-              username:
-                orderData.username ||
-                (orderType === "intable" ? null : "Guest"),
-              tableNumber: orderData.tableNumber || null,
-              orderType: orderType,
-              itemName: orderData.item.name || "Unknown Item",
-              itemPrice: orderData.item.price || 0,
-              itemDetails: orderData.item,
-              status: "Pending",
-              timestamp: new Date(),
-            };
-
-            const result = await ordersCollection.insertOne(order);
-
-            res.writeHead(201, { "Content-Type": "application/json" });
-            res.end(
-              JSON.stringify({
-                message: "Order placed successfully!",
-                orderId: result.insertedId,
-              })
-            );
-          } catch (error) {
-            console.error("Order error:", error);
-            res.writeHead(500, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ error: "Server error" }));
-          }
-        });
-
-        return;
+      if (!data.amount) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ success: false, error: "Amount missing" }));
       }
+
+      const options = {
+        amount: data.amount,   // Already *100 from frontend
+        currency: "INR",
+        receipt: "rcpt_" + Date.now()
+      };
+
+      const order = await razorpay.orders.create(options);
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(
+        JSON.stringify({
+          success: true,
+          orderId: order.id,
+          amount: order.amount
+        })
+      );
+
+    } catch (err) {
+      console.error("Razorpay order error:", err);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ success: false, error: "Server error" }));
+    }
+  });
+  return;
+}
+
+
+// ===== SAVE ORDER AFTER PAYMENT =====
+if (req.method === "POST" && req.url === "/place-order-after-payment") {
+  let body = "";
+
+  req.on("data", chunk => {
+    body += chunk;
+  });
+
+  req.on("end", async () => {
+    try {
+      const data = JSON.parse(body);
+
+      const {
+        userId,
+        username,
+        item,
+        paymentId,
+        razorpayOrderId
+      } = data;
+
+      if (!paymentId) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: "Payment ID missing" }));
+      }
+
+      // ---- Save order in DB ----
+      const orderDoc = {
+        userId,
+        username,
+        itemName: item.name,
+        itemPrice: item.price,
+        itemDetails: item,
+        paymentId,
+        razorpayOrderId,
+        status: "Confirmed",
+        timestamp: new Date()
+      };
+
+      const insert = await ordersCollection.insertOne(orderDoc);
+
+      res.writeHead(201, { "Content-Type": "application/json" });
+      return res.end(
+        JSON.stringify({
+          success: true,
+          message: "Order saved after payment",
+          orderId: insert.insertedId
+        })
+      );
+
+    } catch (err) {
+      console.error("Save order error:", err);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ error: "Server error" }));
+    }
+  });
+
+  return;
+}
+
+
       // ===== PLACE BOOKING =====
       else if (req.method === "POST" && req.url === "/booking") {
         let body = "";
