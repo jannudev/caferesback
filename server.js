@@ -2,6 +2,15 @@ require("dotenv").config();
 const http = require("http");
 const { MongoClient } = require("mongodb");
 const Razorpay = require("razorpay");
+const cloudinary = require("cloudinary").v2;
+const formidable = require("formidable");
+
+cloudinary.config({
+    cloud_name: "draibnla2",
+    api_key: "645837412569762",
+    api_secret: "r9sIcLUqS_xhvNzKqqFDpFBCoJQ"
+});
+
 
 const razorpay = new Razorpay({
   key_id: "rzp_test_RfaAH0asHcuVZE",
@@ -449,6 +458,59 @@ if (req.method === "GET" && req.url === "/reviews") {
     return;
 }
 
+// ===== ADD REVIEW WITH IMAGE UPLOAD =====
+if (req.method === "POST" && req.url === "/add-review") {
+    const form = formidable({ multiples: false });
+
+    form.parse(req, async (err, fields, files) => {
+        try {
+            if (err) {
+                console.error("Form parse error:", err);
+                res.writeHead(400, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ success: false, error: "Form parsing failed" }));
+            }
+
+            const { username, message, role } = fields;
+
+            if (!username || !message) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ success: false, error: "Missing fields" }));
+            }
+
+            const photoFile = files.photo;
+            if (!photoFile) {
+                res.writeHead(400, { "Content-Type": "application/json" });
+                return res.end(JSON.stringify({ success: false, error: "Photo missing" }));
+            }
+
+            // ---- Upload to Cloudinary ----
+            const cloudUpload = await cloudinary.uploader.upload(photoFile.filepath, {
+                folder: "cafe_reviews"
+            });
+
+            // ---- Save to MongoDB ----
+            const review = {
+                username,
+                message,
+                role,
+                photo: cloudUpload.secure_url,
+                createdAt: new Date()
+            };
+
+            const result = await reviewsCollection.insertOne(review);
+
+            res.writeHead(200, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ success: true, reviewId: result.insertedId }));
+
+        } catch (error) {
+            console.error("Review upload error:", error);
+            res.writeHead(500, { "Content-Type": "application/json" });
+            res.end(JSON.stringify({ success: false, error: "Server error" }));
+        }
+    });
+
+    return;
+}
 
       // --- DYNAMIC ROUTES (startsWith) ---
 
