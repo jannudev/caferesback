@@ -314,8 +314,6 @@ async function startServer() {
             return res.end(JSON.stringify({ success: false, error: "Server error" }));
           }
         });
-
-        return;
       }
 
       //  Get reviews 
