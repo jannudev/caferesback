@@ -318,6 +318,20 @@ async function startServer() {
         return;
       }
 
+       // ===== GET REVIEWS =====
+if (req.method === "GET" && req.url === "/reviews") {
+    try {
+        const reviews = await reviewsCollection.find().toArray();
+
+        res.writeHead(200, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify(reviews));
+    } catch (err) {
+        console.error("Get reviews error:", err);
+        res.writeHead(500, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ success: false, error: "Server error" }));
+    }
+}
+
       // GET menu
       if (req.method === "GET" && req.url === "/menu") {
         try {
@@ -520,20 +534,6 @@ async function startServer() {
           return res.end(JSON.stringify({ error: "Server error" }));
         }
       }
-
-      // ===== GET REVIEWS =====
-if (req.method === "GET" && req.url === "/reviews") {
-    try {
-        const reviews = await reviewsCollection.find().toArray();
-
-        res.writeHead(200, { "Content-Type": "application/json" });
-        return res.end(JSON.stringify(reviews));
-    } catch (err) {
-        console.error("Get reviews error:", err);
-        res.writeHead(500, { "Content-Type": "application/json" });
-        return res.end(JSON.stringify({ success: false, error: "Server error" }));
-    }
-}
 
 // ===== 404 NOT FOUND =====
 console.log(`❌ 404 for: ${req.method} ${req.url}`);
