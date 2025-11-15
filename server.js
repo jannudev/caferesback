@@ -1,4 +1,3 @@
-// server.js
 require("dotenv").config();
 const http = require("http");
 const { MongoClient, ObjectId } = require("mongodb");
@@ -36,36 +35,6 @@ async function startServer() {
     const reviewsCollection = db.collection("reviews");
 
     const server = http.createServer(async (req, res) => {
-<<<<<<< HEAD
-      // CORS headers
-      // ===== GLOBAL CORS FIX =====
-res.setHeader("Access-Control-Allow-Origin", "*");
-res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
-res.setHeader("Access-Control-Allow-Headers", "Content-Type");
-
-// Preflight (OPTIONS) response
-if (req.method === "OPTIONS") {
-    res.writeHead(204);
-    return res.end();
-}
-
-
-    // ===== CREATE RAZORPAY ORDER =====
-if (req.method === "POST" && req.url === "/create-razorpay-order") {
-  let body = "";
-
-  req.on("data", chunk => {
-    body += chunk;
-  });
-
-  req.on("end", async () => {
-    try {
-      const data = JSON.parse(body);
-
-      if (!data.amount) {
-        res.writeHead(400, { "Content-Type": "application/json" });
-        return res.end(JSON.stringify({ success: false, error: "Amount missing" }));
-=======
       // ---------- GLOBAL CORS ----------
       res.setHeader("Access-Control-Allow-Origin", "*");
       res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
@@ -75,7 +44,6 @@ if (req.method === "POST" && req.url === "/create-razorpay-order") {
       if (req.method === "OPTIONS") {
         res.writeHead(204);
         return res.end();
->>>>>>> 93a1834
       }
 
       // --------- ROUTES ---------
@@ -302,40 +270,6 @@ if (req.method === "POST" && req.url === "/create-razorpay-order") {
         // Use formidable with keepExtensions
         const form = formidable({ multiples: false, keepExtensions: true });
 
-<<<<<<< HEAD
-    form.parse(req, async (err, fields, files) => {
-        if (err) {
-            res.writeHead(400, { "Content-Type": "application/json" });
-            return res.end(JSON.stringify({ success: false, error: "Form parsing error" }));
-        }
-
-        const { username, message, role } = fields;
-        const photo = files.photo;
-
-        if (!photo) {
-            res.writeHead(400, { "Content-Type": "application/json" });
-            return res.end(JSON.stringify({ success: false, error: "Photo missing" }));
-        }
-
-        // Upload image → Cloudinary
-        const upload = await cloudinary.uploader.upload(photo.filepath, {
-            folder: "reviews"
-        });
-
-        const reviewDoc = {
-            username,
-            message,
-            role,
-            photo: upload.secure_url,
-            createdAt: new Date(),
-        };
-
-        await reviewsCollection.insertOne(reviewDoc);
-
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ success: true }));
-    });
-=======
         form.parse(req, async (err, fields, files) => {
           if (err) {
             console.error("Form parse error:", err);
@@ -396,7 +330,6 @@ if (req.method === "POST" && req.url === "/create-razorpay-order") {
           return res.end(JSON.stringify({ error: "Server error" }));
         }
       }
->>>>>>> 93a1834
 
       // Admin GETs
       if (req.method === "GET" && req.url === "/admin/menu") {
@@ -410,6 +343,24 @@ if (req.method === "POST" && req.url === "/create-razorpay-order") {
           return res.end(JSON.stringify({ error: "Server error" }));
         }
       }
+
+      // GET REVIEWS
+if (req.method === "GET" && req.url === "/reviews") {
+    try {
+        const reviews = await reviewsCollection
+            .find({})
+            .sort({ createdAt: -1 })
+            .toArray();
+
+        res.writeHead(200, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify(reviews));
+    } catch (err) {
+        console.error("Get reviews error:", err);
+        res.writeHead(500, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ success: false, error: "Server error" }));
+    }
+}
+
 
       if (req.method === "GET" && req.url === "/admin/orders") {
         try {
@@ -446,33 +397,8 @@ if (req.method === "POST" && req.url === "/create-razorpay-order") {
           return res.end(JSON.stringify({ error: "Server error" }));
         }
       }
-      // ========= GET REVIEWS =========
-if (req.method === "GET" && req.url === "/reviews") {
-  try {
-    const reviews = await reviewsCollection
-      .find({})
-      .sort({ createdAt: -1 })
-      .toArray();
 
-    res.writeHead(200, { "Content-Type": "application/json" });
-    return res.end(JSON.stringify(reviews));
-
-  } catch (err) {
-    console.error("Get reviews error:", err);
-    res.writeHead(500, { "Content-Type": "application/json" });
-    return res.end(JSON.stringify({ error: "Server error" }));
-  }
-}
-<<<<<<< HEAD
-
-
-
-      // --- DYNAMIC ROUTES (startsWith) ---
-
-      // ===== GET USER ORDERS =====
-=======
       // Dynamic: GET orders by userId
->>>>>>> 93a1834
       if (req.method === "GET" && req.url.startsWith("/orders/")) {
         try {
           const userId = req.url.split("/").pop();
