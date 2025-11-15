@@ -34,17 +34,17 @@ async function startServer() {
 
     const server = http.createServer(async (req, res) => {
       // CORS headers
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.setHeader(
-        "Access-Control-Allow-Methods",
-        "GET, POST, PUT, DELETE, OPTIONS"
-      );
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type");
+      // ===== CORS FIX =====
+res.setHeader("Access-Control-Allow-Origin", "*");
+res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-      if (req.method === "OPTIONS") {
-        res.writeHead(204);
-        return res.end();
-      }
+// Handle preflight requests
+if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    return res.end();
+}
+
 
       console.log(`📨 ${req.method} ${req.url}`);
 
@@ -439,78 +439,54 @@ if (req.method === "POST" && req.url === "/place-order-after-payment") {
       }
 
       // ===== GET REVIEWS =====
-if (req.method === "GET" && req.url === "/reviews") {
-    try {
-        const reviews = await reviewsCollection
-            .find()
-            .sort({ _id: -1 })   // latest first
-            .toArray();
-
-        res.writeHead(200, { "Content-Type": "application/json" });
-        res.end(JSON.stringify(reviews));
-
-    } catch (err) {
-        console.error("Get reviews error:", err);
-        res.writeHead(500, { "Content-Type": "application/json" });
-        res.end(JSON.stringify({ error: "Server error loading reviews" }));
-    }
-
-    return;
-}
-
-// ===== ADD REVIEW WITH IMAGE UPLOAD =====
 if (req.method === "POST" && req.url === "/add-review") {
     const form = formidable({ multiples: false });
 
     form.parse(req, async (err, fields, files) => {
         try {
             if (err) {
-                console.error("Form parse error:", err);
+                console.log("Form parse error:", err);
                 res.writeHead(400, { "Content-Type": "application/json" });
                 return res.end(JSON.stringify({ success: false, error: "Form parsing failed" }));
             }
 
             const { username, message, role } = fields;
-
-            if (!username || !message) {
-                res.writeHead(400, { "Content-Type": "application/json" });
-                return res.end(JSON.stringify({ success: false, error: "Missing fields" }));
-            }
-
             const photoFile = files.photo;
+
             if (!photoFile) {
                 res.writeHead(400, { "Content-Type": "application/json" });
                 return res.end(JSON.stringify({ success: false, error: "Photo missing" }));
             }
 
-            // ---- Upload to Cloudinary ----
-            const cloudUpload = await cloudinary.uploader.upload(photoFile.filepath, {
-                folder: "cafe_reviews"
+            // Cloudinary Upload
+            const uploaded = await cloudinary.uploader.upload(photoFile.filepath, {
+                folder: "cafe_reviews",
             });
 
-            // ---- Save to MongoDB ----
+            // Save in DB
             const review = {
                 username,
                 message,
                 role,
-                photo: cloudUpload.secure_url,
-                createdAt: new Date()
+                photo: uploaded.secure_url,
+                createdAt: new Date(),
             };
 
-            const result = await reviewsCollection.insertOne(review);
+            await reviewsCollection.insertOne(review);
 
             res.writeHead(200, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ success: true, reviewId: result.insertedId }));
+            return res.end(JSON.stringify({ success: true }));
 
         } catch (error) {
             console.error("Review upload error:", error);
             res.writeHead(500, { "Content-Type": "application/json" });
-            res.end(JSON.stringify({ success: false, error: "Server error" }));
+            return res.end(JSON.stringify({ success: false, error: "Server error" }));
         }
     });
 
     return;
 }
+
 
       // --- DYNAMIC ROUTES (startsWith) ---
 
