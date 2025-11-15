@@ -5,14 +5,14 @@ const Razorpay = require("razorpay");
 const cloudinary = require("cloudinary").v2;
 const formidable = require("formidable");
 
-// ------- Cloudinary config (already provided by you) -------
+// ------- Cloudinary config -------
 cloudinary.config({
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME || "draibnla2",
     api_key: process.env.CLOUDINARY_API_KEY || "645837412569762",
     api_secret: process.env.CLOUDINARY_API_SECRET || "r9sIcLUqS_xhvNzKqqFDpFBCoJQ"
 });
 
-// ------- Razorpay config (already provided by you) -------
+// ------- Razorpay config-------
 const razorpay = new Razorpay({
   key_id: process.env.RAZORPAY_KEY_ID || "rzp_test_RfaAH0asHcuVZE",
   key_secret: process.env.RAZORPAY_KEY_SECRET || "kipPapaSAY1JHzlGA4PWjhPV"
@@ -524,7 +524,7 @@ async function startServer() {
       // ===== GET REVIEWS =====
 if (req.method === "GET" && req.url === "/reviews") {
     try {
-        const reviews = await reviewsCollection.find({}).toArray();
+        const reviews = await reviewsCollection.find().toArray();
 
         res.writeHead(200, { "Content-Type": "application/json" });
         return res.end(JSON.stringify(reviews));
