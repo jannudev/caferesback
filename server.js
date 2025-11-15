@@ -323,7 +323,7 @@ if (req.method === "GET" && req.url === "/reviews") {
     try {
         const reviews = await reviewsCollection
             .find()
-            .sort({ _id: -1 })   // latest first
+            .sort({ _id: -1 })
             .toArray();
 
         res.writeHead(200, { "Content-Type": "application/json" });
@@ -333,10 +333,7 @@ if (req.method === "GET" && req.url === "/reviews") {
         console.error("Get reviews error:", err);
         res.writeHead(500, { "Content-Type": "application/json" });
         res.end(JSON.stringify({ error: "Server error loading reviews" }));
-    }
-
-    return;
-}
+    }};
 
 
       // GET menu
