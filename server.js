@@ -344,22 +344,6 @@ async function startServer() {
         }
       }
 
-      // GET REVIEWS
-    if (req.method === "GET" && req.url === "/reviews") {
-  try {
-    const allReviews = await reviewsCollection
-      .find()
-      .sort({ createdAt: -1 })
-      .toArray();
-
-    res.writeHead(200, { "Content-Type": "application/json" });
-    return res.end(JSON.stringify(allReviews));
-  } catch (err) {
-    console.error("Get reviews error:", err);
-    res.writeHead(500, { "Content-Type": "application/json" });
-    return res.end(JSON.stringify({ error: "Server error" }));
-  }
-}
       if (req.method === "GET" && req.url === "/admin/orders") {
         try {
           const orders = await ordersCollection.find({}).sort({ timestamp: -1 }).toArray();
@@ -537,10 +521,27 @@ async function startServer() {
         }
       }
 
-      // Final 404
-      console.log(`❌ 404 for: ${req.method} ${req.url}`);
-      res.writeHead(404, { "Content-Type": "application/json" });
-      return res.end(JSON.stringify({ error: `Endpoint not found: ${req.url}` }));
+      // ===== GET REVIEWS =====
+if (req.method === "GET" && req.url === "/reviews") {
+    try {
+        const reviews = await reviewsCollection
+            .find({})
+            .sort({ createdAt: -1 })
+            .toArray();
+
+        res.writeHead(200, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify(reviews));
+    } catch (err) {
+        console.error("Get reviews error:", err);
+        res.writeHead(500, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ success: false, error: "Server error" }));
+    }
+}
+
+// ===== 404 NOT FOUND =====
+console.log(`❌ 404 for: ${req.method} ${req.url}`);
+res.writeHead(404, { "Content-Type": "application/json" });
+res.end(JSON.stringify({ error: `Endpoint not found: ${req.url}` }));
     });
 
     server.listen(PORT, () => {
