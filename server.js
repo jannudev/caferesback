@@ -80,7 +80,7 @@ async function startServer() {
             return res.end(JSON.stringify({ success: false, error: "Razorpay failed" }));
           }
         });
-        return;
+        
       }
 
       // Save order after payment
@@ -121,7 +121,7 @@ async function startServer() {
             return res.end(JSON.stringify({ error: "Server error" }));
           }
         });
-        return;
+        
       }
 
       // Booking
@@ -174,7 +174,7 @@ async function startServer() {
             return res.end(JSON.stringify({ error: "Server error while booking" }));
           }
         });
-        return;
+  
       }
 
       // Login
@@ -203,7 +203,7 @@ async function startServer() {
             return res.end(JSON.stringify({ error: "Invalid JSON" }));
           }
         });
-        return;
+        
       }
 
       // Sign up
@@ -440,7 +440,6 @@ if (req.method === "GET" && req.url === "/reviews") {
             return res.end(JSON.stringify({ error: "Bad request" }));
           }
         });
-        return;
       }
 
       // Delete menu item
@@ -490,7 +489,7 @@ if (req.method === "GET" && req.url === "/reviews") {
             return res.end(JSON.stringify({ error: "Bad request" }));
           }
         });
-        return;
+       
       }
 
       // Delete user (admin)
