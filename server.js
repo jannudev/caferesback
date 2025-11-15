@@ -346,20 +346,19 @@ async function startServer() {
 
       // GET REVIEWS
 if (req.method === "GET" && req.url === "/reviews") {
-    try {
-        const reviews = await reviewsCollection
-            .find({})
-            .sort({ createdAt: -1 })
-            .toArray();
+  try {
+    const allReviews = await reviewsCollection.find().sort({ createdAt: -1 }).toArray();
 
-        res.writeHead(200, { "Content-Type": "application/json" });
-        return res.end(JSON.stringify(reviews));
-    } catch (err) {
-        console.error("Get reviews error:", err);
-        res.writeHead(500, { "Content-Type": "application/json" });
-        return res.end(JSON.stringify({ success: false, error: "Server error" }));
-    }
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify(allReviews));
+
+  } catch (err) {
+    console.error("Get reviews error:", err);
+    res.writeHead(500, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ error: "Server error" }));
+  }
 }
+
 
 
       if (req.method === "GET" && req.url === "/admin/orders") {
