@@ -524,10 +524,7 @@ async function startServer() {
       // ===== GET REVIEWS =====
 if (req.method === "GET" && req.url === "/reviews") {
     try {
-        const reviews = await reviewsCollection
-            .find({})
-            .sort({ createdAt: -1 })
-            .toArray();
+        const reviews = await reviewsCollection.find({}).toArray();
 
         res.writeHead(200, { "Content-Type": "application/json" });
         return res.end(JSON.stringify(reviews));
