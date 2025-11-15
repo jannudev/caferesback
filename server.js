@@ -345,22 +345,21 @@ async function startServer() {
       }
 
       // GET REVIEWS
-if (req.method === "GET" && req.url === "/reviews") {
+    if (req.method === "GET" && req.url === "/reviews") {
   try {
-    const allReviews = await reviewsCollection.find().sort({ createdAt: -1 }).toArray();
+    const allReviews = await reviewsCollection
+      .find()
+      .sort({ createdAt: -1 })
+      .toArray();
 
     res.writeHead(200, { "Content-Type": "application/json" });
     return res.end(JSON.stringify(allReviews));
-
   } catch (err) {
     console.error("Get reviews error:", err);
     res.writeHead(500, { "Content-Type": "application/json" });
     return res.end(JSON.stringify({ error: "Server error" }));
   }
 }
-
-
-
       if (req.method === "GET" && req.url === "/admin/orders") {
         try {
           const orders = await ordersCollection.find({}).sort({ timestamp: -1 }).toArray();
