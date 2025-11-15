@@ -34,19 +34,17 @@ async function startServer() {
 
     const server = http.createServer(async (req, res) => {
       // CORS headers
-      // ===== CORS FIX =====
+      // ===== GLOBAL CORS FIX =====
 res.setHeader("Access-Control-Allow-Origin", "*");
 res.setHeader("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
 res.setHeader("Access-Control-Allow-Headers", "Content-Type");
 
-// Handle preflight requests
+// Preflight (OPTIONS) response
 if (req.method === "OPTIONS") {
     res.writeHead(204);
     return res.end();
 }
 
-
-      console.log(`📨 ${req.method} ${req.url}`);
 
     // ===== CREATE RAZORPAY ORDER =====
 if (req.method === "POST" && req.url === "/create-razorpay-order") {
@@ -443,49 +441,41 @@ if (req.method === "POST" && req.url === "/add-review") {
     const form = formidable({ multiples: false });
 
     form.parse(req, async (err, fields, files) => {
-        try {
-            if (err) {
-                console.log("Form parse error:", err);
-                res.writeHead(400, { "Content-Type": "application/json" });
-                return res.end(JSON.stringify({ success: false, error: "Form parsing failed" }));
-            }
-
-            const { username, message, role } = fields;
-            const photoFile = files.photo;
-
-            if (!photoFile) {
-                res.writeHead(400, { "Content-Type": "application/json" });
-                return res.end(JSON.stringify({ success: false, error: "Photo missing" }));
-            }
-
-            // Cloudinary Upload
-            const uploaded = await cloudinary.uploader.upload(photoFile.filepath, {
-                folder: "cafe_reviews",
-            });
-
-            // Save in DB
-            const review = {
-                username,
-                message,
-                role,
-                photo: uploaded.secure_url,
-                createdAt: new Date(),
-            };
-
-            await reviewsCollection.insertOne(review);
-
-            res.writeHead(200, { "Content-Type": "application/json" });
-            return res.end(JSON.stringify({ success: true }));
-
-        } catch (error) {
-            console.error("Review upload error:", error);
-            res.writeHead(500, { "Content-Type": "application/json" });
-            return res.end(JSON.stringify({ success: false, error: "Server error" }));
+        if (err) {
+            res.writeHead(400, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ success: false, error: "Form parsing error" }));
         }
+
+        const { username, message, role } = fields;
+        const photo = files.photo;
+
+        if (!photo) {
+            res.writeHead(400, { "Content-Type": "application/json" });
+            return res.end(JSON.stringify({ success: false, error: "Photo missing" }));
+        }
+
+        // Upload image → Cloudinary
+        const upload = await cloudinary.uploader.upload(photo.filepath, {
+            folder: "reviews"
+        });
+
+        const reviewDoc = {
+            username,
+            message,
+            role,
+            photo: upload.secure_url,
+            createdAt: new Date(),
+        };
+
+        await reviewsCollection.insertOne(reviewDoc);
+
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ success: true }));
     });
 
     return;
 }
+
 
 
       // --- DYNAMIC ROUTES (startsWith) ---
