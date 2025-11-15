@@ -331,7 +331,7 @@ if (req.method === "GET" && req.url === "/reviews") {
         return res.end(JSON.stringify({ success: false, error: "Server error" }));
     }
 }
-return;
+
       // GET menu
       if (req.method === "GET" && req.url === "/menu") {
         try {
@@ -536,6 +536,7 @@ return;
       }
 
 // ===== 404 NOT FOUND =====
+return;
 console.log(`❌ 404 for: ${req.method} ${req.url}`);
 res.writeHead(404, { "Content-Type": "application/json" });
 res.end(JSON.stringify({ error: `Endpoint not found: ${req.url}` }));
