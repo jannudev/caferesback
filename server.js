@@ -318,18 +318,26 @@ async function startServer() {
         return;
       }
 
-      // GET reviwes
-      if (req.method === "GET" && req.url === "/reviews") {
-        try {
-          const reviews = await reviewsCollectionCollection.find().toArray();
-          res.writeHead(200, { "Content-Type": "application/json" });
-          return res.end(JSON.stringify(reviews));
-        } catch (err) {
-          console.error("Get menu error:", err);
-          res.writeHead(500, { "Content-Type": "application/json" });
-          return res.end(JSON.stringify({ error: "Server error" }));
-        }
-      }
+      //  Get reviews 
+if (req.method === "GET" && req.url === "/reviews") {
+    try {
+        const reviews = await reviewsCollection
+            .find()
+            .sort({ _id: -1 })   // latest first
+            .toArray();
+
+        res.writeHead(200, { "Content-Type": "application/json" });
+        res.end(JSON.stringify(reviews));
+
+    } catch (err) {
+        console.error("Get reviews error:", err);
+        res.writeHead(500, { "Content-Type": "application/json" });
+        res.end(JSON.stringify({ error: "Server error loading reviews" }));
+    }
+
+    return;
+}
+
 
       // GET menu
       if (req.method === "GET" && req.url === "/menu") {
@@ -535,7 +543,6 @@ async function startServer() {
       }
 
 // ===== 404 NOT FOUND =====
-return;
 console.log(`❌ 404 for: ${req.method} ${req.url}`);
 res.writeHead(404, { "Content-Type": "application/json" });
 res.end(JSON.stringify({ error: `Endpoint not found: ${req.url}` }));
