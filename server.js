@@ -380,7 +380,23 @@ async function startServer() {
           return res.end(JSON.stringify({ error: "Server error" }));
         }
       }
+      // ========= GET REVIEWS =========
+if (req.method === "GET" && req.url === "/reviews") {
+  try {
+    const reviews = await reviewsCollection
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
 
+    res.writeHead(200, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify(reviews));
+
+  } catch (err) {
+    console.error("Get reviews error:", err);
+    res.writeHead(500, { "Content-Type": "application/json" });
+    return res.end(JSON.stringify({ error: "Server error" }));
+  }
+}
       // Dynamic: GET orders by userId
       if (req.method === "GET" && req.url.startsWith("/orders/")) {
         try {
