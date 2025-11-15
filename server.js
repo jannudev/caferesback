@@ -331,7 +331,7 @@ if (req.method === "GET" && req.url === "/reviews") {
         return res.end(JSON.stringify({ success: false, error: "Server error" }));
     }
 }
-
+return;
       // GET menu
       if (req.method === "GET" && req.url === "/menu") {
         try {
