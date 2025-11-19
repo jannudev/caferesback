@@ -265,56 +265,68 @@ async function startServer() {
         return;
       }
 
-      // ===== ADD REVIEW (file upload via formidable) =====
-      if (req.method === "POST" && req.url === "/add-review") {
-        // Use formidable with keepExtensions
-        const form = formidable({ multiples: false, keepExtensions: true });
+     // Add Review
+if (req.method === "POST" && req.url === "/add-review") {
 
-        form.parse(req, async (err, fields, files) => {
-          if (err) {
-            console.error("Form parse error:", err);
-            res.writeHead(400, { "Content-Type": "application/json" });
-            return res.end(JSON.stringify({ success: false, error: "Form parsing error" }));
-          }
+  // Formidable with required config
+  const form = formidable({
+    multiples: false,
+    keepExtensions: true,
+    uploadDir: "./uploads"  // <--- important
+  });
 
-          try {
-            const { username, message, role } = fields || {};
-            const photo = files?.photo;
+  form.parse(req, async (err, fields, files) => {
+    if (err) {
+      console.error("Form parse error:", err);
+      res.writeHead(400, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ success: false, error: "Form parsing error" }));
+    }
 
-            if (!photo) {
-              res.writeHead(400, { "Content-Type": "application/json" });
-              return res.end(JSON.stringify({ success: false, error: "Photo missing" }));
-            }
+    try {
+      const { username, message, role } = fields || {};
+      const photo = files?.photo;
 
-            // Upload to Cloudinary (wrap in try/catch)
-            let upload;
-            try {
-              upload = await cloudinary.uploader.upload(photo.filepath, { folder: "reviews" });
-            } catch (cloudErr) {
-              console.error("Cloudinary upload error:", cloudErr);
-              res.writeHead(500, { "Content-Type": "application/json" });
-              return res.end(JSON.stringify({ success: false, error: "Image upload failed" }));
-            }
-
-            const reviewDoc = {
-              username: username || "Anonymous",
-              message: message || "",
-              role: role || "customer",
-              photo: upload.secure_url,
-              createdAt: new Date()
-            };
-
-            await reviewsCollection.insertOne(reviewDoc);
-
-            res.writeHead(200, { "Content-Type": "application/json" });
-            return res.end(JSON.stringify({ success: true, review: reviewDoc }));
-          } catch (error) {
-            console.error("Add review error:", error);
-            res.writeHead(500, { "Content-Type": "application/json" });
-            return res.end(JSON.stringify({ success: false, error: "Server error" }));
-          }
-        });
+      if (!photo) {
+        res.writeHead(400, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ success: false, error: "Photo missing" }));
       }
+
+      // Upload to Cloudinary
+      let upload;
+      try {
+        upload = await cloudinary.uploader.upload(photo.filepath, {
+          folder: "reviews",
+          upload_preset: "review_preset"   // <--- YOUR CLOUDINARY PRESET
+        });
+      } catch (cloudErr) {
+        console.error("Cloudinary upload error:", cloudErr);
+        res.writeHead(500, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ success: false, error: "Image upload failed" }));
+      }
+
+      const reviewDoc = {
+        username: username || "Anonymous",
+        message: message || "",
+        role: role || "customer",
+        photo: upload.secure_url,
+        createdAt: new Date()
+      };
+
+      await reviewsCollection.insertOne(reviewDoc);
+
+      res.writeHead(200, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ success: true, review: reviewDoc }));
+
+    } catch (error) {
+      console.error("Add review error:", error);
+      res.writeHead(500, { "Content-Type": "application/json" });
+      return res.end(JSON.stringify({ success: false, error: "Server error" }));
+    }
+  });
+
+  return;
+}
+
 
       //  Get reviews 
 if (req.method === "GET" && req.url === "/reviews") {
