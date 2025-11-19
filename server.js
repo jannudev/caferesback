@@ -268,11 +268,11 @@ async function startServer() {
      // Add Review
 if (req.method === "POST" && req.url === "/add-review") {
 
-  // Formidable with required config
+ 
   const form = formidable({
     multiples: false,
     keepExtensions: true,
-    uploadDir: "./uploads"  // <--- important
+    uploadDir: "./uploads"  
   });
 
   form.parse(req, async (err, fields, files) => {
