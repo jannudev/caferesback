@@ -268,12 +268,12 @@ async function startServer() {
      // Add Review
 if (req.method === "POST" && req.url === "/add-review") {
 
- 
-  const form = formidable({
+  const form = new formidable.IncomingForm({
     multiples: false,
     keepExtensions: true,
-    uploadDir: "./uploads"  
-  });
+    uploadDir: "./uploads"
+});
+
 
   form.parse(req, async (err, fields, files) => {
     if (err) {
