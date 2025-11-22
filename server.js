@@ -271,7 +271,7 @@ if (req.method === "POST" && req.url === "/add-review") {
   const form = new formidable.IncomingForm({
     multiples: false,
     keepExtensions: true,
-    uploadDir: "./temp"
+    uploadDir: "./tmp"
 });
 
 
