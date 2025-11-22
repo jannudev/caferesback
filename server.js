@@ -203,7 +203,7 @@ async function startServer() {
             return res.end(JSON.stringify({ error: "Invalid JSON" }));
           }
         });
-        
+        return;
       }
 
       // Sign up
