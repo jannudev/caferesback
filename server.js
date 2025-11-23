@@ -82,7 +82,7 @@ async function startServer() {
             return res.end(JSON.stringify({ success: false, error: "Razorpay failed" }));
           }
         });
-        
+        return;
       }
 
       // Save order after payment
