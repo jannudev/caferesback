@@ -35,16 +35,18 @@ async function startServer() {
     const reviewsCollection = db.collection("reviews");
 
     const server = http.createServer(async (req, res) => {
-      // ---------- GLOBAL CORS ----------
-      res.setHeader("Access-Control-Allow-Origin", "*");
-      res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-      res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization");
 
-      // Preflight
-      if (req.method === "OPTIONS") {
-        res.writeHead(204);
-        return res.end();
-      }
+  // ---------- GLOBAL CORS ----------
+  res.setHeader("Access-Control-Allow-Origin", "*");
+  res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "*");
+
+  // Preflight
+  if (req.method === "OPTIONS") {
+    res.writeHead(204);
+    return res.end();
+  }
+
 
       // --------- ROUTES ---------
 
