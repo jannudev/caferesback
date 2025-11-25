@@ -502,21 +502,21 @@ async function startServer() {
       return res.end(JSON.stringify({ error: "Server error" }));
     }
 
-  } else if (req.method === "GET" && req.url.startsWith("/reels")) {
-  try {
-    const list = await reelsCollection
-      .find()
-      .sort({ createdAt: -1 })
-      .toArray();
+ } else if (req.method === "GET" && req.url.startsWith("/reels")) {
+    try {
+        const list = await reelsCollection
+            .find({})
+            .sort({ createdAt: -1 })
+            .toArray();
 
-    res.writeHead(200, { "Content-Type": "application/json" });
-    return res.end(JSON.stringify(list));
-  } catch (err) {
-    console.error("Get reels error:", err);
-    res.writeHead(500, { "Content-Type": "application/json" });
-    return res.end(JSON.stringify({ error: "Server error loading reels" }));
-  }
-} else {
+        res.writeHead(200, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify(list));
+    } catch (err) {
+        console.error("Get reels error:", err);
+        res.writeHead(500, { "Content-Type": "application/json" });
+        return res.end(JSON.stringify({ error: "Server error loading reels" }));
+    }
+   } else {
     // ===== 404 NOT FOUND =====
     console.log(`❌ 404 for: ${req.method} ${req.url}`);
     res.writeHead(404, { "Content-Type": "application/json" });
