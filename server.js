@@ -30,6 +30,7 @@ async function startServer() {
     const db = client.db("caferes");
     const usersCollection = db.collection("users");
     const menuCollection = db.collection("menu");
+    const reelsCollection = db.collection("reels");
     const ordersCollection = db.collection("orders");
     const bookingsCollection = db.collection("bookings");
     const reviewsCollection = db.collection("reviews");
@@ -47,7 +48,7 @@ async function startServer() {
     return res.end();
   }
 
-  // --------- ROUTES (else-if chain) ---------
+  // --------- ROUTES ---------
 
   if (req.method === "POST" && req.url === "/create-razorpay-order") {
     let body = "";
@@ -503,7 +504,7 @@ async function startServer() {
 
   } else if (req.method === "GET" && req.url === "/reels") {
     try {
-      const list = await db.collection("reels")
+      const list = await reelsCollection
         .find()
         .sort({ createdAt: -1 })
         .toArray();
